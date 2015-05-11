@@ -12,12 +12,16 @@ using namespace std;
 
 Board::Board(void) {
     this->houses = 0;
-	const int NUMBER_OF_SEEDS = 30;
-	for (int i=0; i < NUMBER_OF_SEEDS; i++) {
+	this->NUMBER_OF_SEEDS = 30;
+	for (int i=0; i < this->NUMBER_OF_SEEDS; i++) {
 		this->sow(-1, rand() % 6);
 		this->sow(-1, (rand() % 6) + 7);
 	}
 	cout << "Board created" << endl;
+}
+
+Board *Board::clone() const {
+     return new Board(*this);
 }
 
 int Board::convertHouseToShift(int house) {
@@ -30,12 +34,8 @@ int Board::convertHouseToShift(int house) {
 }
 
 void Board::sow(int src_house, int dst_house) {
-	__uint128_t src = (src_house == -1) ? 0 : (__uint128_t)1 << this->convertHouseToShift(src_house);
-	__uint128_t dst = (__uint128_t)1 << this->convertHouseToShift(dst_house);
-
-	if (dst_house == 13) {
-		int a = 0;
-	}
+	BoardInt src = (src_house == -1) ? 0 : (BoardInt)1 << this->convertHouseToShift(src_house);
+	BoardInt dst = (BoardInt)1 << this->convertHouseToShift(dst_house);
 
 	this->houses += -src + dst;
 }
@@ -60,7 +60,6 @@ int Board::getHouse(int house) {
 }
 
 void Board::sowFrom(int house) {
-	cout << ": Sowing from " << house << endl;
     int seeds = this->getHouse(house);
     int h = house;
     for (int i = 1; i <= seeds; i++) {
@@ -69,10 +68,7 @@ void Board::sowFrom(int house) {
     	}
 
     	this->sow(house, h);
-        cout << ": Sowing " << seeds << " into " << h;
     }
-
-    cout << endl;
 }
 
 void Board::print() {

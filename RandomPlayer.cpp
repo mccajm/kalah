@@ -13,10 +13,7 @@ RandomPlayer::RandomPlayer(int n, Board *board) {
 	this->board = board;
 }
 
-RandomPlayer::~RandomPlayer() {
-	// TODO Auto-generated destructor stub
-}
-
+// Move this into board
 void RandomPlayer::updatePossibleMoves() {
 	this->possibleMoves.clear();
 	for (int i = 0; i < 6; i++) {

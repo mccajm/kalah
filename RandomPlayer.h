@@ -20,7 +20,6 @@ private:
 	void updatePossibleMoves();
 public:
 	RandomPlayer(int n, Board *board);
-	virtual ~RandomPlayer();
 	int getNextMove();
 };
 

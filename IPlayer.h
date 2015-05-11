@@ -11,6 +11,7 @@
 class IPlayer {
 public:
 	virtual int getNextMove() = 0;
+	virtual ~IPlayer() {};
 };
 
 #endif /* IPLAYER_H_ */
