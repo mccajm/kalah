@@ -32,7 +32,7 @@ std::size_t operator()(const BoardInt& v) const
 	uint64_t low = v >> 64;
 	uint64_t high = (v - low) >> 64;
 
-	const uint64_t kMul = 0x9ddfea08eb382d69ULL;
+	const uint64_t kMul = 0x9ddfea08eb382d69ULL; // 2^64/phi
 	uint64_t a = (hash<uint64_t>()(low) ^ hash<uint64_t>()(high) ) * kMul;
 	a ^= (a >> 47);
 	uint64_t b = (hash<uint64_t>()(high)  ^ a) * kMul;

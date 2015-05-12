@@ -55,8 +55,8 @@ int AIPlayer::getNextMove() {
 TTEntry *AIPlayer::buildTTEntry(Board *board, int v) {
 	TTEntry *tt = new TTEntry();
 	// TODO: this needs to be better as we get lots of collisions
-	uint64_t low = board->getBoard() >> 32;
-	uint64_t high = (board->getBoard() - low) >> 32;
+	uint64_t low = board->getBoard() >> 64;
+	uint64_t high = (board->getBoard() - low) >> 64;
 	int h = hash<uint64_t>()(low) ^ (hash<uint64_t>()(high) + 0x9e3779b9 + (low << 6) + (low >> 2));
 	tt->key = h ^ v;
 	tt->value = v;
@@ -65,11 +65,11 @@ TTEntry *AIPlayer::buildTTEntry(Board *board, int v) {
 
 //alphabeta(origin, depth, -inf, +inf, TRUE)
 int AIPlayer::alphaBeta(Board *board, int depth, int alpha, int beta, int maximisingPlayer) {
+	this->counter++;
 	if (this->transpositionTable.count(board->getBoard()) > 0) {
 		// Do check checksum
 		return this->transpositionTable.at(board->getBoard());
 	}
-	this->counter++;
 
 	if (depth == 0 || (board->getKalah(0) + board->getKalah(1) == board->NUMBER_OF_SEEDS)) {
 		return board->getScore();
