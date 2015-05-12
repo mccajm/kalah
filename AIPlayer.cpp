@@ -7,7 +7,10 @@
 
 #include <cstdlib>
 #include <iostream>
+#include <limits>
 #include "AIPlayer.h"
+
+// TODO: delete each element in transpositionTable
 
 AIPlayer::AIPlayer(int n, Board *board) {
 	this->n = n;
@@ -30,15 +33,17 @@ vector<int> AIPlayer::getPossibleMoves(Board *b) {
 int AIPlayer::getNextMove() {
 	this->counter = 0;
     int nextMove = -1;
-    double bestV = -numeric_limits<int>::max();
+    int bestV = -numeric_limits<double>::max();
     vector<int> possibleMoves = this->getPossibleMoves(this->board);
     for (std::vector<int>::iterator it = possibleMoves.begin() ; it != possibleMoves.end(); ++it) {
     	Board *boardClone = board->clone();
     	boardClone->sowFrom(*it);
-    	double v = this->alphaBeta(boardClone, 12, -numeric_limits<int>::max(), numeric_limits<int>::max(), 1);
+    	int v = this->alphaBeta(boardClone, 10000, -numeric_limits<int>::max(), numeric_limits<int>::max(), 1);
     	if (v > bestV) {
     		nextMove = *it;
     	}
+
+    	delete boardClone;
     	this->counter++;
     }
 
@@ -46,9 +51,26 @@ int AIPlayer::getNextMove() {
 
     return nextMove;
 }
+
+TTEntry *AIPlayer::buildTTEntry(Board *board, int v) {
+	TTEntry *tt = new TTEntry();
+	// TODO: this needs to be better as we get lots of collisions
+	uint64_t low = board->getBoard() >> 32;
+	uint64_t high = (board->getBoard() - low) >> 32;
+	int h = hash<uint64_t>()(low) ^ (hash<uint64_t>()(high) + 0x9e3779b9 + (low << 6) + (low >> 2));
+	tt->key = h ^ v;
+	tt->value = v;
+	return tt;
+}
+
 //alphabeta(origin, depth, -inf, +inf, TRUE)
-double AIPlayer::alphaBeta(Board *board, int depth, int alpha, int beta, int maximisingPlayer) {
+int AIPlayer::alphaBeta(Board *board, int depth, int alpha, int beta, int maximisingPlayer) {
+	if (this->transpositionTable.count(board->getBoard()) > 0) {
+		// Do check checksum
+		return this->transpositionTable.at(board->getBoard());
+	}
 	this->counter++;
+
 	if (depth == 0 || (board->getKalah(0) + board->getKalah(1) == board->NUMBER_OF_SEEDS)) {
 		return board->getScore();
 	}
@@ -58,7 +80,7 @@ double AIPlayer::alphaBeta(Board *board, int depth, int alpha, int beta, int max
 	for (std::vector<int>::iterator it = possibleMoves.begin() ; it != possibleMoves.end(); ++it) {
 		Board *boardClone = board->clone();
 		boardClone->sowFrom(*it);
-		double ab = this->alphaBeta(boardClone, depth-1, alpha, beta, !maximisingPlayer);
+		int ab = this->alphaBeta(board, depth-1, alpha, beta, !maximisingPlayer);
 		if (maximisingPlayer) {
 			if (ab > v) v = ab;
 			alpha = (alpha > v) ? alpha : v;
@@ -69,30 +91,12 @@ double AIPlayer::alphaBeta(Board *board, int depth, int alpha, int beta, int max
 		}
 
 		if (beta <= alpha) {
-			break; // b cut-off
+			break; // cut-off
 		}
+
+		delete boardClone;
 	}
 
+	this->transpositionTable[board->getBoard()] = v;
 	return v;
 }
-/*
-function alphabeta(node, depth, a, b, maximizingPlayer)
-02      if depth = 0 or node is a terminal node
-03          return the heuristic value of node
-04      if maximizingPlayer
-05          v := -infinity
-06          for each child of node
-07              v := max(v, alphabeta(child, depth - 1, a, b, FALSE))
-08              a := max(a, v)
-09              if b <= a
-10                  break (* b cut-off *)
-11          return v
-12      else
-13          v := inf
-14          for each child of node
-15              v := min(v, alphabeta(child, depth - 1, a, b, TRUE))
-16              b := min(b, v)
-17              if b <= a
-18                  break (* a cut-off *)
-19          return v
-*/

@@ -21,9 +21,10 @@ public:
 	int NUMBER_OF_SEEDS;
 	int getHouse(int house);
 	int getKalah(int player);
-	double getScore();
+	int getScore();
 	void sowFrom(int house);
 	void print();
+	BoardInt getBoard();
 	Board();
 	virtual Board *clone() const;
 	virtual ~Board() {};

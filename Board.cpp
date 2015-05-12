@@ -24,6 +24,7 @@ Board *Board::clone() const {
      return new Board(*this);
 }
 
+// Make this fit NUMBER_OF_SEEDS*2
 int Board::convertHouseToShift(int house) {
 	int shift = house * 5;
 	if (house > 6) { // Kalahs are 6 bits
@@ -86,27 +87,10 @@ void Board::print() {
 	cout << endl << endl;
 }
 
-double Board::getScore() {
-	double total = getKalah(0) + getKalah(1);
-	if (total == 0) {
-		return 0;
-	}
-
-	return (this->getKalah(0)-this->getKalah(1))/total;
+int Board::getScore() {
+	return this->getKalah(0) - this->getKalah(1);
 }
-/*
-int Board::getWinner() {
-	int *kalahs = new int[2];
-	for (int i = 0; i < 2; i++)
-		kalahs[i] = this->getKalah(i);
 
-	if (kalahs[0] > 30)
-		return 0;
-	else if (kalahs[1] > 30)
-		return 1;
-	else if ((kalahs[0] + kalahs[1]) == 60)
-		return 2;
-
-	return -1;
+BoardInt Board::getBoard() {
+	return this->houses;
 }
-*/
