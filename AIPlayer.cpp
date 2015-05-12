@@ -16,6 +16,8 @@ AIPlayer::AIPlayer(int n, Board *board) {
 	this->n = n;
 	this->board = board;
 	this->counter = 0;
+	// ~7MB preallocated to prevent repetitive malloc()
+	this->transpositionTable.reserve(409600);
 }
 
 // Move this into board
