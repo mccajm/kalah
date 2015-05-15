@@ -24,9 +24,17 @@ void Game::mainLoop() {
 		int move = players[currentPlayer]->getNextMove();
 		cout << "Player " << currentPlayer << " " << move << endl;
 		if (move != -1) {
-			this->board->sowFrom(move);
+			int lastHouse = this->board->sowFrom(move);
+			vector<int> houses = this->board->getHouses(currentPlayer);
+			if (find(houses.begin(), houses.end(), lastHouse) != houses.end()) {
+				currentPlayer = !currentPlayer;
+			}
+		} else {
+			this->board->endGame();
+			this->board->print();
+			break;
 		}
-
+// TODO: implement 5
 		this->board->print();
 		currentPlayer = !currentPlayer;
 	}

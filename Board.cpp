@@ -11,7 +11,7 @@ using namespace std;
 
 
 Board::Board(void) {
-    this->houses = 0;
+    this->board = 0;
 	this->NUMBER_OF_SEEDS = 30;
 	for (int i=0; i < this->NUMBER_OF_SEEDS; i++) {
 		this->sow(-1, rand() % 6);
@@ -26,41 +26,42 @@ Board *Board::clone() const {
 
 // Make this fit NUMBER_OF_SEEDS*2
 int Board::convertHouseToShift(int house) {
-	int shift = house * 5;
-	if (house > 6) { // Kalahs are 6 bits
-		shift++;
-	}
-
-	return shift;
+	return house * 6;
 }
 
 void Board::sow(int src_house, int dst_house) {
 	BoardInt src = (src_house == -1) ? 0 : (BoardInt)1 << this->convertHouseToShift(src_house);
 	BoardInt dst = (BoardInt)1 << this->convertHouseToShift(dst_house);
 
-	this->houses += -src + dst;
+	this->board += -src + dst;
 }
 
 int Board::getKalah(int player) {
-	return this->getHouse(6 + player*7);
+	return this->getHouse(0 + player*7);
 }
 
 int Board::getHouse(int house) {
 	int shift = this->convertHouseToShift(house);
 	int val = 0;
-	int len = 5;
-	if (house == 6 || house == 13) {
-		len++;
-	}
-	for (int i = 0; i < len; i++) {
-		int bit = (this->houses >> (shift+i)) & 1;
+	for (int i = 0; i < 6; i++) {
+		int bit = (this->board >> (shift+i)) & 1;
 		val += bit * (1 << i);
 	}
 
 	return val;
 }
 
-void Board::sowFrom(int house) {
+
+vector<int> Board::getHouses(int player) {
+	vector<int> houses;
+	for (int i = 1; i < 7; i++) {
+		houses.push_back(i + player*7);
+	}
+
+	return houses;
+}
+
+int Board::sowFrom(int house) {
     int seeds = this->getHouse(house);
     int h = house;
     for (int i = 1; i <= seeds; i++) {
@@ -70,18 +71,23 @@ void Board::sowFrom(int house) {
 
     	this->sow(house, h);
     }
+
+    return h;
 }
 
 void Board::print() {
-	cout << "Player 2" << "\t\t\t\t\t\t" << "Player 1" << endl;
-	for (int i = 0; i <=5; i++) {
-		cout << "\t" << i << ":" << this->getHouse(i);
+	cout << "Player 1" << "\t\t\t\t\t\t" << "Player 2" << endl;
+	vector<int> p1Houses = this->getHouses(0);
+	for (int i = 0; i < (int)p1Houses.size(); i++) {
+		cout << "\t" << i+1 << ":" << this->getHouse(p1Houses[i]);
 	}
 	cout << endl;
 
-	cout << this->getKalah(1) << "\t\t\t\t\t\t\t" << this->getKalah(0) << endl;
-	for (int i = 12; i > 6; i--) {
-		cout << "\t" << i << ":" << this->getHouse(i);
+	cout << this->getKalah(0) << "\t\t\t\t\t\t\t" << this->getKalah(1) << endl;
+
+	vector<int> p2Houses = this->getHouses(1);
+	for (int i = 0; i < (int)p2Houses.size(); i++) {
+		cout << "\t" << i+1 << ":" << this->getHouse(p2Houses[i]);
 	}
 
 	cout << endl << endl;
@@ -92,5 +98,16 @@ int Board::getScore() {
 }
 
 BoardInt Board::getBoard() {
-	return this->houses;
+	return this->board;
+}
+
+void Board::endGame() {
+	for (int player = 0; player < 2; player++) {
+	    vector<int> houses = this->getHouses(player);
+	    for (int i = 0; i < (int)houses.size(); i++) {
+            while (this->getHouse(houses.at(i)) > 0) {
+		        this->sow(houses.at(i), 0);
+            }
+	    }
+	}
 }

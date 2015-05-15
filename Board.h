@@ -8,12 +8,14 @@
 #ifndef BOARD_H_
 #define BOARD_H_
 #include <stdint.h>
+#include <vector>
+using namespace std;
 
 typedef __uint128_t BoardInt;
 
 class Board {
 private:
-	BoardInt houses;
+	BoardInt board;
 	void sow(int src_house, int dst_house);
 	int convertHouseToShift(int house);
 
@@ -22,8 +24,10 @@ public:
 	int getHouse(int house);
 	int getKalah(int player);
 	int getScore();
-	void sowFrom(int house);
+	vector<int> getHouses(int player);
+	int sowFrom(int house);
 	void print();
+	void endGame();
 	BoardInt getBoard();
 	Board();
 	virtual Board *clone() const;

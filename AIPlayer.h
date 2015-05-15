@@ -49,9 +49,10 @@ private:
 	int counter;
 	unordered_map<BoardInt, int> transpositionTable;
 	Board *board;
+	int mtdf(int f, int depth);
 	TTEntry *buildTTEntry(Board *b, int v);
 	vector<int> getPossibleMoves(Board *b);
-	int alphaBeta(Board *board, int depth, int alpha, int beta, int maximisingPlayer);
+	int alphaBeta(Board *board, int depth, int alpha, int beta, int maximisingPlayer, int *bestMove);
 public:
 	AIPlayer(int n, Board *board);
 	int getNextMove();

@@ -16,7 +16,7 @@ RandomPlayer::RandomPlayer(int n, Board *board) {
 // Move this into board
 void RandomPlayer::updatePossibleMoves() {
 	this->possibleMoves.clear();
-	for (int i = 0; i < 6; i++) {
+	for (int i = 1; i < 7; i++) {
 		if (this->board->getHouse(i + n*7) > 0) {
 			this->possibleMoves.push_back(i + n*7);
 		}

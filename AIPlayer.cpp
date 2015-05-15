@@ -8,9 +8,8 @@
 #include <cstdlib>
 #include <iostream>
 #include <limits>
+#include <ctime>
 #include "AIPlayer.h"
-
-// TODO: delete each element in transpositionTable
 
 AIPlayer::AIPlayer(int n, Board *board) {
 	this->n = n;
@@ -23,9 +22,9 @@ AIPlayer::AIPlayer(int n, Board *board) {
 // Move this into board
 vector<int> AIPlayer::getPossibleMoves(Board *b) {
 	vector<int> possibleMoves;
-	for (int i = 0; i < 6; i++) {
-		if (b->getHouse(i + n*7) > 0) {
-			possibleMoves.push_back(i + n*7);
+	for (int i = 1; i < 7; i++) {
+		if (b->getHouse(i + this->n*7) > 0) {
+			possibleMoves.push_back(i + this->n*7);
 		}
 	}
 
@@ -34,24 +33,26 @@ vector<int> AIPlayer::getPossibleMoves(Board *b) {
 
 int AIPlayer::getNextMove() {
 	this->counter = 0;
-    int nextMove = -1;
-    int bestV = -numeric_limits<double>::max();
-    vector<int> possibleMoves = this->getPossibleMoves(this->board);
-    for (std::vector<int>::iterator it = possibleMoves.begin() ; it != possibleMoves.end(); ++it) {
-    	Board *boardClone = board->clone();
-    	boardClone->sowFrom(*it);
-    	int v = this->alphaBeta(boardClone, 10000, -numeric_limits<int>::max(), numeric_limits<int>::max(), 1);
-    	if (v > bestV) {
-    		nextMove = *it;
-    	}
+    if (this->getPossibleMoves(this->board).size() == 0) {
+        return -1;
+    }
 
-    	delete boardClone;
-    	this->counter++;
+    // Iterative Deepening
+    int bestMove = -1;
+    clock_t start = clock();
+    double duration = 0;
+    for (int depth = 1; depth < 100000; depth++) {
+    	bestMove = this->mtdf(this->getPossibleMoves(this->board).at(0), depth);
+    	duration = std::clock() - start / (double)CLOCKS_PER_SEC;
+    	if (duration > 2) {
+    		break;
+    	}
     }
 
     cout << this->counter << " Nodes traversed" << endl;
+    this->transpositionTable.clear();
 
-    return nextMove;
+    return bestMove;
 }
 
 TTEntry *AIPlayer::buildTTEntry(Board *board, int v) {
@@ -65,31 +66,66 @@ TTEntry *AIPlayer::buildTTEntry(Board *board, int v) {
 	return tt;
 }
 
+int AIPlayer::mtdf(int f, int depth) {
+	int bestMove = f;
+	int upperBound = numeric_limits<int>::max();
+	int lowerBound = -numeric_limits<int>::max();
+	while (lowerBound < upperBound) {
+	    int beta = f;
+	    if (f == lowerBound) {
+	    	beta++;
+	    }
+
+	    f = this->alphaBeta(this->board, depth, beta-1, beta, (this->n == 0), &bestMove);
+	    if (f < beta) {
+	    	upperBound = f;
+	    } else {
+	    	lowerBound = f;
+	    }
+	}
+
+	return bestMove;
+}
+
 //alphabeta(origin, depth, -inf, +inf, TRUE)
-int AIPlayer::alphaBeta(Board *board, int depth, int alpha, int beta, int maximisingPlayer) {
-	this->counter++;
+int AIPlayer::alphaBeta(Board *board, int depth, int alpha, int beta, int maximisingPlayer, int *bestMove) {
 	if (this->transpositionTable.count(board->getBoard()) > 0) {
 		// Do check checksum
 		return this->transpositionTable.at(board->getBoard());
 	}
 
-	if (depth == 0 || (board->getKalah(0) + board->getKalah(1) == board->NUMBER_OF_SEEDS)) {
+	this->counter++;
+	if (depth == 0 || (board->getKalah(0) + board->getKalah(1) == board->NUMBER_OF_SEEDS*2)) {
 		return board->getScore();
 	}
 
-	int v = -numeric_limits<int>::max();
-	vector<int> possibleMoves = this->getPossibleMoves(this->board);
-	for (std::vector<int>::iterator it = possibleMoves.begin() ; it != possibleMoves.end(); ++it) {
+	int bestValue = -numeric_limits<int>::max();
+	vector<int> possibleMoves = this->getPossibleMoves(board);
+	for (int i = 0; i < (int)possibleMoves.size(); i++) {
 		Board *boardClone = board->clone();
-		boardClone->sowFrom(*it);
-		int ab = this->alphaBeta(board, depth-1, alpha, beta, !maximisingPlayer);
+		int lastHouse = boardClone->sowFrom(possibleMoves[i]);
+		vector<int> houses = this->board->getHouses(maximisingPlayer);
+		if (find(houses.begin(), houses.end(), lastHouse) != houses.end()) {
+			maximisingPlayer = !maximisingPlayer;
+		}
+
+        if ((int)this->getPossibleMoves(boardClone).size() == 0) {
+        	boardClone->endGame();
+        }
+		int ab = this->alphaBeta(boardClone, depth-1, alpha, beta, !maximisingPlayer, bestMove);
 		if (maximisingPlayer) {
-			if (ab > v) v = ab;
-			alpha = (alpha > v) ? alpha : v;
+			if (ab > bestValue) {
+				bestValue = ab;
+				*bestMove = possibleMoves[i];
+			}
+			alpha = (alpha > bestValue) ? alpha : bestValue;
 		} else {
-			v = -v;
-			if (ab < v) v = ab;
-			beta = (beta < v) ? beta : v;
+			bestValue = -bestValue;
+			if (ab < bestValue) {
+				bestValue = ab;
+				*bestMove = possibleMoves[i];
+			}
+			beta = (beta < bestValue) ? beta : bestValue;
 		}
 
 		if (beta <= alpha) {
@@ -99,6 +135,6 @@ int AIPlayer::alphaBeta(Board *board, int depth, int alpha, int beta, int maximi
 		delete boardClone;
 	}
 
-	this->transpositionTable[board->getBoard()] = v;
-	return v;
+	this->transpositionTable[board->getBoard()] = bestValue;
+	return bestValue;
 }

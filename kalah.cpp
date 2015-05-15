@@ -2,7 +2,7 @@
 // Name        : kalah.cpp
 // Author      : Adam McCarthy
 // Version     :
-// Copyright   : 
+// Copyright   :
 // Description : Hello World in C++, Ansi-style
 //============================================================================
 
