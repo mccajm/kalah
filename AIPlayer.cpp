@@ -104,14 +104,16 @@ int AIPlayer::alphaBeta(Board *board, int depth, int alpha, int beta, int maximi
 	for (int i = 0; i < (int)possibleMoves.size(); i++) {
 		Board *boardClone = board->clone();
 		int lastHouse = boardClone->sowFrom(possibleMoves[i]);
-		vector<int> houses = this->board->getHouses(maximisingPlayer);
+		vector<int> houses = this->board->getHouses(maximisingPlayer); // FIX
 		if (find(houses.begin(), houses.end(), lastHouse) != houses.end()) {
 			maximisingPlayer = !maximisingPlayer;
 		}
 
         if ((int)this->getPossibleMoves(boardClone).size() == 0) {
         	boardClone->endGame();
+    		return board->getScore();
         }
+
 		int ab = this->alphaBeta(boardClone, depth-1, alpha, beta, !maximisingPlayer, bestMove);
 		if (maximisingPlayer) {
 			if (ab > bestValue) {
