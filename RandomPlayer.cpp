@@ -6,19 +6,20 @@
  */
 
 #include <cstdlib>
+#include <iostream>
 #include "RandomPlayer.h"
 
 RandomPlayer::RandomPlayer(int n, Board *board) {
 	this->n = n;
-	this->board = board;
+	this->b = board;
 }
 
 // Move this into board
 void RandomPlayer::updatePossibleMoves() {
 	this->possibleMoves.clear();
 	for (int i = 1; i < 7; i++) {
-		if (this->board->getHouse(i + n*7) > 0) {
-			this->possibleMoves.push_back(i + n*7);
+		if (this->b->getHouse(i + this->n*this->b->SIDE_WIDTH) > 0) {
+			this->possibleMoves.push_back(i + this->n*this->b->SIDE_WIDTH);
 		}
 	}
 }

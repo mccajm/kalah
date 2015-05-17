@@ -15,17 +15,22 @@ typedef __uint128_t BoardInt;
 
 class Board {
 private:
+	// TODO: getter to prevent cheating!
 	BoardInt board;
 	void sow(int src_house, int dst_house);
 	int convertHouseToShift(int house);
+	const int HOUSE_BIT_WIDTH = 6;
 
 public:
-	int NUMBER_OF_SEEDS;
+	const int NUMBER_OF_SEEDS = 60;
+	const int SIDE_WIDTH = 7; // 6 houses + 1 kalah
+	void sowAll(int src_house, int dst_house);
 	int getHouse(int house);
 	int getKalah(int player);
 	int getScore();
+	int getOppositeHouse(int house);
 	vector<int> getHouses(int player);
-	int sowFrom(int house);
+	pair<int, bool> sowFrom(int house);
 	void print();
 	void endGame();
 	BoardInt getBoard();

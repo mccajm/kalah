@@ -6,25 +6,24 @@
  */
 
 #include <cstdlib>
-#include <iostream>
 #include <limits>
 #include <ctime>
+#include <iostream>
 #include "AIPlayer.h"
 
 AIPlayer::AIPlayer(int n, Board *board) {
 	this->n = n;
-	this->board = board;
-	this->counter = 0;
+	this->b = board;
 	// ~7MB preallocated to prevent repetitive malloc()
 	this->transpositionTable.reserve(409600);
 }
 
 // Move this into board
-vector<int> AIPlayer::getPossibleMoves(Board *b) {
+vector<int> AIPlayer::getPossibleMoves(Board *board) {
 	vector<int> possibleMoves;
-	for (int i = 1; i < 7; i++) {
-		if (b->getHouse(i + this->n*7) > 0) {
-			possibleMoves.push_back(i + this->n*7);
+	for (int i = 1; i < board->SIDE_WIDTH; i++) {
+		if (board->getHouse(i + this->n*board->SIDE_WIDTH) > 0) {
+			possibleMoves.push_back(i + this->n*board->SIDE_WIDTH);
 		}
 	}
 
@@ -32,41 +31,29 @@ vector<int> AIPlayer::getPossibleMoves(Board *b) {
 }
 
 int AIPlayer::getNextMove() {
-	this->counter = 0;
-    if (this->getPossibleMoves(this->board).size() == 0) {
+    if (this->getPossibleMoves(this->b).size() == 0) {
         return -1;
     }
 
     // Iterative Deepening
     int bestMove = -1;
     clock_t start = clock();
-    double duration = 0;
-    for (int depth = 1; depth < 100000; depth++) {
-    	bestMove = this->mtdf(this->getPossibleMoves(this->board).at(0), depth);
-    	duration = std::clock() - start / (double)CLOCKS_PER_SEC;
-    	if (duration > 2) {
-    		break;
-    	}
+    for (int depth = 0; depth < 1000; depth++) {  // Average game length ~= 100 so try upto 1000 depth
+        bestMove = mtdf(this->getPossibleMoves(this->b).at(0), depth);
+        if ((clock() - start) / (double) CLOCKS_PER_SEC > 2) {
+        	break;
+        }
     }
 
-    cout << this->counter << " Nodes traversed" << endl;
     this->transpositionTable.clear();
-
     return bestMove;
 }
 
-TTEntry *AIPlayer::buildTTEntry(Board *board, int v) {
-	TTEntry *tt = new TTEntry();
-	// TODO: this needs to be better as we get lots of collisions
-	uint64_t low = board->getBoard() >> 64;
-	uint64_t high = (board->getBoard() - low) >> 64;
-	int h = hash<uint64_t>()(low) ^ (hash<uint64_t>()(high) + 0x9e3779b9 + (low << 6) + (low >> 2));
-	tt->key = h ^ v;
-	tt->value = v;
-	return tt;
-}
-
 int AIPlayer::mtdf(int f, int depth) {
+	/*
+	 * Plaat, A. (1999). MTD (f), A Minimax Algorithm faster than NegaScout.
+	 * http://people.csail.mit.edu/plaat/mtdf.html
+	 */
 	int bestMove = f;
 	int upperBound = numeric_limits<int>::max();
 	int lowerBound = -numeric_limits<int>::max();
@@ -76,7 +63,7 @@ int AIPlayer::mtdf(int f, int depth) {
 	    	beta++;
 	    }
 
-	    f = this->alphaBeta(this->board, depth, beta-1, beta, (this->n == 0), &bestMove);
+	    f = this->alphaBeta(this->b->clone(), depth, beta-1, beta, this->n, &bestMove);
 	    if (f < beta) {
 	    	upperBound = f;
 	    } else {
@@ -87,51 +74,84 @@ int AIPlayer::mtdf(int f, int depth) {
 	return bestMove;
 }
 
-//alphabeta(origin, depth, -inf, +inf, TRUE)
-int AIPlayer::alphaBeta(Board *board, int depth, int alpha, int beta, int maximisingPlayer, int *bestMove) {
+int AIPlayer::alphaBeta(Board *board, int depth, int alpha, int beta, int player, int *bestMove) {
+	/*
+	 * Plaat, A. (1999). MTD (f), A Minimax Algorithm faster than NegaScout.
+	 * http://people.csail.mit.edu/plaat/mtdf.html
+	 */
 	if (this->transpositionTable.count(board->getBoard()) > 0) {
-		// Do check checksum
+        /* If this was parallelised I would implement a lockless transposition table
+		 * https://cis.uab.edu/hyatt/hashing.html
+		 * or use a spinlock */
 		return this->transpositionTable.at(board->getBoard());
 	}
 
-	this->counter++;
-	if (depth == 0 || (board->getKalah(0) + board->getKalah(1) == board->NUMBER_OF_SEEDS*2)) {
+	vector<int> possibleMoves = this->getPossibleMoves(board);
+	if ((int)this->getPossibleMoves(board).size() == 0) {
+		for (int p = 0; p < 2; p++) {
+			vector<int> houses = board->getHouses(p);
+			for (int i = 0; i < (int)houses.size(); i++) {
+				board->sowAll(houses.at(i), 0 + p*board->SIDE_WIDTH);
+			}
+		}
+
+	    return board->getScore();
+	}
+
+	if (depth == 0 || (board->getKalah(0) + board->getKalah(1) == board->NUMBER_OF_SEEDS)) {
 		return board->getScore();
 	}
 
 	int bestValue = -numeric_limits<int>::max();
-	vector<int> possibleMoves = this->getPossibleMoves(board);
-	for (int i = 0; i < (int)possibleMoves.size(); i++) {
-		Board *boardClone = board->clone();
-		int lastHouse = boardClone->sowFrom(possibleMoves[i]);
-		vector<int> houses = this->board->getHouses(maximisingPlayer); // FIX
-		if (find(houses.begin(), houses.end(), lastHouse) != houses.end()) {
-			maximisingPlayer = !maximisingPlayer;
+	for (int checkMove = 0; checkMove < (int)possibleMoves.size(); checkMove++) {
+		if (player == 1) {
+			bestValue = numeric_limits<int>::max();
 		}
 
-        if ((int)this->getPossibleMoves(boardClone).size() == 0) {
-        	boardClone->endGame();
-    		return board->getScore();
-        }
+		Board *boardClone = board->clone();
+		pair<int, bool> lastHouse = boardClone->sowFrom(possibleMoves[checkMove]);
+		vector<int> houses = boardClone->getHouses(player);
+		if (find(houses.begin(), houses.end(), lastHouse.first) != houses.end()) {
+			if (lastHouse.second) {
+				int opHouse = boardClone->getOppositeHouse(lastHouse.first);
+				int opSeeds = boardClone->getHouse(opHouse);
+				if (opSeeds > 0) {
+					boardClone->sowAll(lastHouse.first, 0 + player*board->SIDE_WIDTH);
+					boardClone->sowAll(opHouse, 0 + player*board->SIDE_WIDTH);
+				}
+			}
 
-		int ab = this->alphaBeta(boardClone, depth-1, alpha, beta, !maximisingPlayer, bestMove);
-		if (maximisingPlayer) {
+			player = !player;
+		}
+
+		int ab = this->alphaBeta(boardClone, depth-1, alpha, beta, !player, NULL);
+		if (player == 0) {
 			if (ab > bestValue) {
 				bestValue = ab;
-				*bestMove = possibleMoves[i];
+				if (bestMove) {
+					*bestMove = possibleMoves[checkMove];
+				}
 			}
-			alpha = (alpha > bestValue) ? alpha : bestValue;
+
+			if (bestValue > alpha) alpha = bestValue;
+			if (bestValue < beta) {
+				delete boardClone;
+				break;
+			}
 		} else {
-			bestValue = -bestValue;
+			int ab = this->alphaBeta(boardClone, depth-1, alpha, beta, !player, NULL);
 			if (ab < bestValue) {
 				bestValue = ab;
-				*bestMove = possibleMoves[i];
+				if (bestMove) {
+					*bestMove = possibleMoves[checkMove];
+				}
 			}
-			beta = (beta < bestValue) ? beta : bestValue;
-		}
 
-		if (beta <= alpha) {
-			break; // cut-off
+			if (bestValue < beta) beta = bestValue;
+			if (bestValue > alpha) {
+				delete boardClone;
+				break;
+			}
 		}
 
 		delete boardClone;
