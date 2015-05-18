@@ -1,10 +1,3 @@
-/*
- * RandomPlayer.h
- *
- *  Created on: 10 May 2015
- *      Author: adam
- */
-
 #ifndef AIPlayer_H_
 #define AIPlayer_H_
 #include <vector>
@@ -15,15 +8,14 @@
 using namespace std;
 
 
-typedef __uint128_t BoardInt;
-
+/* Hashes BoardInt - used by transposition table (unordered_map)
+ * based on Hash128to64(const uint128& x) { in CityHash
+ * http://cityhash.googlecode.com/svn-history/trunk/src/city.h
+ * Given more time I would test number of collisions over a set of boards.*/
 namespace std {
 	template <>
 	struct hash<BoardInt> {
 		size_t operator()(const BoardInt& v) const {
-			// based on Hash128to64(const uint128& x) { in CityHash
-			// http://cityhash.googlecode.com/svn-history/trunk/src/city.h
-			// Given more time I would test number of collisions over a set of boards.
 			uint64_t low = v >> 64;
 			uint64_t high = (v - low) >> 64;
 
@@ -43,13 +35,12 @@ class AIPlayer: public IPlayer {
 private:
 	int n;
 	unordered_map<BoardInt, int> transpositionTable;
-	Board *b;
-	int mtdf(int f, int depth);
+	int mtdf(Board *board, int f, int depth);
 	vector<int> getPossibleMoves(Board *b);
 	int alphaBeta(Board *board, int depth, int alpha, int beta, int maximisingPlayer, int *bestMove);
 public:
-	AIPlayer(int n, Board *board);
-	int getNextMove();
+	AIPlayer(int n);
+	int getNextMove(Board *board);
 };
 
 #endif /* AIPLAYER_H_ */

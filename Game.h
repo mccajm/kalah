@@ -1,10 +1,3 @@
-/*
- * Game.h
- *
- *  Created on: 11 May 2015
- *      Author: adam
- */
-
 #ifndef SRC_GAME_H_
 #define SRC_GAME_H_
 #include "Board.h"

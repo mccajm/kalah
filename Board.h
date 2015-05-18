@@ -1,16 +1,10 @@
-/*
- * Board.h
- *
- *  Created on: 8 May 2015
- *      Author: adam
- */
-
 #ifndef BOARD_H_
 #define BOARD_H_
 #include <stdint.h>
 #include <vector>
 using namespace std;
 
+// Bit representation, with 6 bits for each house
 typedef __uint128_t BoardInt;
 
 class Board {
@@ -34,7 +28,7 @@ public:
 	void endGame();
 	BoardInt getBoard();
 	Board();
-	virtual Board *clone() const;
+	virtual Board *clone();
 	virtual ~Board() {};
 };
 #endif /* BOARD_H_ */

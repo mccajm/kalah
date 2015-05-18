@@ -1,16 +1,18 @@
 /*
- * RandomPlayer.h
+ * IPlayer.h
  *
- *  Created on: 10 May 2015
- *      Author: adam
+ *  Interface for a pluggable player
  */
 
 #ifndef IPLAYER_H_
 #define IPLAYER_H_
+#include "Board.h"
+
+const int NULL_MOVE = -1;
 
 class IPlayer {
 public:
-	virtual int getNextMove() = 0;
+	virtual int getNextMove(Board *board) = 0;
 	virtual ~IPlayer() {};
 };
 

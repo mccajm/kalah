@@ -15,11 +15,11 @@ using namespace std;
 class RandomPlayer: public IPlayer {
 private:
 	int n;
-	Board *b;
+	Board *board;
 	vector<int> getPossibleMoves();
 public:
-	RandomPlayer(int n, Board *board);
-	int getNextMove();
+	RandomPlayer(int n);
+	int getNextMove(Board *board);
 };
 
 #endif /* RANDOMPLAYER_H_ */

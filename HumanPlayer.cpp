@@ -1,20 +1,18 @@
 /*
  * HumanPlayer.cpp
  *
- *  Created on: 10 May 2015
- *      Author: adam
+ *  IPlayer which takes move selection from a human player
  */
 
 #include <iostream>
 #include <algorithm>
 #include "HumanPlayer.h"
 
-HumanPlayer::HumanPlayer(int n, Board *board) {
+HumanPlayer::HumanPlayer(int n) {
 	this->n = n;
-	this->board = board;
+	this->board = NULL;
 }
 
-// Move this into board
 void HumanPlayer::updatePossibleMoves() {
 	this->possibleMoves.clear();
 	for (int i = 1; i < this->board->SIDE_WIDTH; i++) {
@@ -24,6 +22,8 @@ void HumanPlayer::updatePossibleMoves() {
 	}
 }
 
+/* Query the user for the next move.  If the supplied move is invalid,
+ *  query again. */
 vector<int>::iterator HumanPlayer::getMoveAsInput() {
     int i;
     vector<int>::iterator it;
@@ -54,10 +54,11 @@ vector<int>::iterator HumanPlayer::getMoveAsInput() {
     return it;
 }
 
-int HumanPlayer::getNextMove() {
+int HumanPlayer::getNextMove(Board *board) {
+	this->board = board;
 	this->updatePossibleMoves();
 	if (this->possibleMoves.size() == 0) {
-		return -1;
+		return NULL_MOVE;
 	}
 
     return *getMoveAsInput();

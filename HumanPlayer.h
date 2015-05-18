@@ -1,10 +1,3 @@
-/*
- * RandomPlayer.h
- *
- *  Created on: 10 May 2015
- *      Author: adam
- */
-
 #ifndef HUMANPLAYER_H_
 #define HUMANPLAYER_H_
 #include <vector>
@@ -20,8 +13,8 @@ private:
 	void updatePossibleMoves();
 	vector<int>::iterator getMoveAsInput();
 public:
-	HumanPlayer(int n, Board *board);
-	int getNextMove();
+	HumanPlayer(int n);
+	int getNextMove(Board *board);
 };
 
 #endif /* HUMANPLAYER_H_ */
