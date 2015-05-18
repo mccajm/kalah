@@ -6,6 +6,7 @@
  */
 
 #include <iostream>
+#include <algorithm>
 #include "Game.h"
 #include "IPlayer.h"
 using namespace std;
@@ -51,8 +52,6 @@ void Game::mainLoop() {
                     this->board->sowAll(houses.at(i), 0 + player*this->board->SIDE_WIDTH);
         	    }
         	}
-
-			this->board->print();
 		}
 
 		cout << endl;

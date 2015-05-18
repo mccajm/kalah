@@ -139,7 +139,6 @@ int AIPlayer::alphaBeta(Board *board, int depth, int alpha, int beta, int player
 				break;
 			}
 		} else {
-			int ab = this->alphaBeta(boardClone, depth-1, alpha, beta, !player, NULL);
 			if (ab < bestValue) {
 				bestValue = ab;
 				if (bestMove) {

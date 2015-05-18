@@ -7,24 +7,25 @@
  */
 
 #include <iostream>
+#include <ctime>
 #include "Board.h"
 #include "IPlayer.h"
 #include "RandomPlayer.h"
 #include "HumanPlayer.h"
 #include "AIPlayer.h"
-
 #include "Game.h"
 using namespace std;
 
 int main() {
 	Board b;
+	srand(time(NULL));
 	IPlayer *players[2];
     string playerType;
 
 	cout << ":: Kalah Game" << endl << endl;
 
     for (int i = 0; i < 2; i++) {
-		cout << ":: Player " << i << ": Select type by entering Human, Random or AI: ";
+		cout << ":: Player " << i+1 << ": Select type by entering Human, Random or AI: ";
 
 		cin >> playerType;
 		if (playerType == "Human") {

@@ -40,7 +40,7 @@ vector<int>::iterator HumanPlayer::getMoveAsInput() {
                	cout << j << " ";
             }
 
-            cout << endl << endl;
+            cout << endl;
         } else {
             cout << ":: Please enter a valid move: ";
             for (auto j : this->possibleMoves) {
@@ -48,8 +48,6 @@ vector<int>::iterator HumanPlayer::getMoveAsInput() {
             }
 
             cout << endl;
-            cin.clear();
-            cin.ignore(numeric_limits<streamsize>::max(), '\n');
         }
     }
 

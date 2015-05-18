@@ -16,8 +16,7 @@ class RandomPlayer: public IPlayer {
 private:
 	int n;
 	Board *b;
-	vector<int> possibleMoves;
-	void updatePossibleMoves();
+	vector<int> getPossibleMoves();
 public:
 	RandomPlayer(int n, Board *board);
 	int getNextMove();

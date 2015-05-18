@@ -15,7 +15,6 @@ typedef __uint128_t BoardInt;
 
 class Board {
 private:
-	// TODO: getter to prevent cheating!
 	BoardInt board;
 	void sow(int src_house, int dst_house);
 	int convertHouseToShift(int house);
